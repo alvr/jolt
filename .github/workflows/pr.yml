@@ -1,0 +1,87 @@
+name: Jolt PR Workflow
+
+env:
+  CARGO_TERM_COLOR: always
+
+on:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-arm64
+            target: aarch64-unknown-linux-gnu
+            runs-on: ubuntu-latest
+          - name: linux-arm64-musl
+            target: aarch64-unknown-linux-musl
+            runs-on: ubuntu-latest
+          - name: linux-x64
+            target: x86_64-unknown-linux-gnu
+            runs-on: ubuntu-latest
+          - name: linux-x64-musl
+            target: x86_64-unknown-linux-musl
+            runs-on: ubuntu-latest
+          - name: macos-x64
+            target: x86_64-apple-darwin
+            runs-on: macos-latest
+          - name: macos-arm64
+            target: aarch64-apple-darwin
+            runs-on: macos-latest
+          - name: windows-x64
+            target: x86_64-pc-windows-msvc
+            runs-on: windows-latest
+          - name: windows-arm64
+            target: aarch64-pc-windows-msvc
+            runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install Rust toolchain
+        run: |
+          rustup install stable --profile minimal
+          rustup target add ${{ matrix.target }}
+          rustup component add clippy rustfmt
+          cargo install clippy-sarif sarif-fmt
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6 # v2.7.8
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: aarch64-linux-gnu workaround
+        if: ${{ matrix.target == 'aarch64-unknown-linux-gnu' }}
+        run: sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: linux-musl workaround
+        if: ${{ matrix.target  == 'aarch64-unknown-linux-musl' || matrix.target == 'x86_64-unknown-linux-musl' }}
+        run: sudo apt-get install -y musl-dev
+
+      - name: Check dependencies
+        run: cargo fetch --locked
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy
+        run: |
+          mkdir -p target
+          cargo clippy --all-targets --all-features --message-format=json | clippy-sarif | tee target/rust-clippy-results.sarif | sarif-fmt
+
+      - name: Build
+        run: cargo build --all-targets --all-features
+
+      - name: Run tests
+        run: cargo test --all-targets --all-features
+
+      - name: Upload analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@fca7ace96b7d713c7035871441bd52efbe39e27e # v3.28.19
+        with:
+          sarif_file: target/rust-clippy-results.sarif
+          checkout_path: ${{ github.workspace }}
+          wait-for-processing: true
