@@ -20,6 +20,7 @@ clap = { version = "4.5.39", features = ["cargo", "derive"] }
 serde = { version = "1.0.219", features = ["derive"] }
 
 jolt-cli = { path = "crates/jolt-cli" }
+jolt-manager = { path = "crates/jolt-manager" }
 
 [profile.dev]
 incremental = true

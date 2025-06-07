@@ -7,6 +7,9 @@ use clap::{
     },
     crate_description, crate_version,
 };
+use jolt_manager::manager::Manager;
+
+use crate::{cmd_install::CmdInstall, cmd_list::CmdList, cmd_search::CmdSearch, cmd_update::CmdUpdate};
 
 const STYLES: Styles = Styles::styled()
     .header(
@@ -86,20 +89,13 @@ enum Commands {
 }
 
 pub fn cli() -> Result<()> {
+    let manager = Manager::new();
+
     match Cli::parse().command {
-        Commands::Install {
-            distribution: _,
-            version: _,
-        } => todo!(),
-        Commands::List {
-            distribution: _,
-            version: _,
-        } => todo!(),
-        Commands::Search {
-            distribution: _,
-            version: _,
-        } => todo!(),
-        Commands::Update => todo!(),
+        Commands::Install { distribution, version } => manager.install(distribution, version),
+        Commands::List { distribution, version } => manager.list(distribution, version),
+        Commands::Search { distribution, version } => manager.search(distribution, version),
+        Commands::Update => manager.update(),
     }
 }
 

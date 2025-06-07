@@ -130,7 +130,15 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "clap",
+ "jolt-manager",
  "serde",
+]
+
+[[package]]
+name = "jolt-manager"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
 ]
 
 [[package]]
