@@ -1,6 +1,26 @@
-[package]
-name = "jolt"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+members = ["crates/*"]
+resolver = "2"
 
-[dependencies]
+[workspace.package]
+authors = ["Álvaro Salcedo García <alvaro@alvr.dev>"]
+categories = ["command-line-utilities"]
+description = "Command-line utility to manage different JVMs (Java Virtual Machine)"
+homepage = "https://git.alvr.dev/alvr/jolt"
+license = "MIT"
+readme = "README.md"
+repository = "https://git.alvr.dev/alvr/jolt"
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.85.1"
+
+[workspace.dependencies]
+
+[profile.dev]
+incremental = true
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+strip = true
