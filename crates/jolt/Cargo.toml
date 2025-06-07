@@ -12,3 +12,6 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+anyhow.workspace = true
+
+jolt-cli.workspace = true
